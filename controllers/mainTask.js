@@ -61,7 +61,7 @@ const mergeObjects = (arrays) => {
 export const mainTask = async() => {
 
   let objects = [];
-  let avroFile = [];
+  let avroFiles = [];
   const paginator = paginateListObjectsV2(
     { client, pageSize: Number.parseInt('1000') },
     { Bucket: BUCKET_NAME , Prefix:PREFIX},
@@ -72,8 +72,23 @@ export const mainTask = async() => {
       o.Key.endsWith(".csv") && !o.Key.includes("metadata") ? o.Key : undefined)
     ).filter(Boolean)];
 
-
+    avroFiles = [...avroFiles,...page.Contents.map((o) => o.Key.endsWith(".avro") )]
+    
   }
+
+  const avroFilesPerUser = new Map()
+
+
+
+  avroFiles.forEach((avro) => {
+    if(avro.Key.include("1-1-00000001")){
+      
+    }else{
+
+    }
+  } )
+
+
 
   let digital_markers = []
   const lastEntries = await Empatica.aggregate([
