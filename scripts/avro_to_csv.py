@@ -100,10 +100,14 @@ def process_all_sensors(data, output_dir):
     process_steps(data, output_dir)
 def process_avro_file(avro_file_path, output_dir):
     """Process a single Avro file and append to CSV files."""
-    reader = DataFileReader(open(avro_file_path, "rb"), DatumReader())
-    data = next(reader)
-    process_all_sensors(data, output_dir)
-    reader.close()
+    try:
+        reader = DataFileReader(open(avro_file_path, "rb"), DatumReader())
+        data = next(reader)
+        process_all_sensors(data, output_dir)
+        reader.close()
+    except:
+        print("File corrupt")
+    
 def process_folder(folder_path, output_dir):
     """Scan the given folder and process all Avro files recursively."""
     avro_files = glob.glob(os.path.join(folder_path, '**', '*.avro'), recursive=True)
@@ -117,6 +121,6 @@ def process_folder(folder_path, output_dir):
         print(f"Finished processing {avro_file}.")
 
 
-avro_folder_path = "/Users/michaelvilches/Desktop/apps/plataforma-bienestar/datosS3/1/1/participant_data/2024-10-27/00000001-3YK651D13H/raw_data/v6"
+avro_folder_path = "./output/avro/1442-1-1-00000001"
 output_dir = "./output/avro"
 process_folder(avro_folder_path, output_dir)
