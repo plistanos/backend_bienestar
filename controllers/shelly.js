@@ -1,42 +1,29 @@
+import axios from 'axios'
+import Shelly from '../models/Shelly.js';
 
 
+export const getStatus = () => {
+  const ahora = Date.now(); // Timestamp Unix en milisegundos
+  const milisegundosHastaSiguienteSegundo = 1000 - (ahora % 1000); // Tiempo hasta el siguiente segundo exacto
 
+  setTimeout(() => {
+    const timestampInicio = Math.floor(Date.now() / 1000); // Primer timestamp Unix sincronizado
+    console.log("Primer timestamp exacto:", timestampInicio);
 
+    // Usa setInterval para ejecutar cada segundo exacto
+    setInterval(async() => {
+      const timestampActual = Math.floor(Date.now() / 1000); // Timestamp Unix actual en segundos
+      const {data} = await axios.post('https://shelly-131-eu.shelly.cloud/device/status?id=84fce63ffc80&auth_key=Mjk1MDFmdWlkAED068288FAECC11034434A31B9D7E4FC77CE32B879D280F257A8CE2C9511CBF0C7303F6CDB93349')
+      
+      console.log(`${data.data.device_status["switch:0"].apower} ${timestampActual}`);
+      const shellyData = new Shelly()
 
-const status = {
-  "id": 0,
-  "voltage": 225.9,
-  "current": 0,
-  "apower": 0,
-  "freq": 50,
-  "aenergy": {
-    "total": 11.679,
-    "by_minute": [
-      0,
-      0,
-      0
-    ],
-    "minute_ts": 1654511972
-  },
-  "ret_aenergy": {
-    "total": 4.126,
-    "by_minute": [
-      0,
-      0,
-      0
-    ],
-    "minute_ts": 1654511318
-  },
-  "errors": [
-    "power_meter_failure",
-    "out_of_range:voltage",
-    "out_of_range:current",
-    "out_of_range:apower",
-    "out_of_range:aprtpower"
-  ]
-}
+      shellyData.apower = data.data.device_status["switch:0"].apower;
+      shellyData.timestamp_unix = timestampActual;
 
+      await shellyData.save()
 
-const getStatus = () => {
-    
+      // Aquí puedes usar el timestamp actual
+    }, 1000);
+  }, milisegundosHastaSiguienteSegundo);
 }

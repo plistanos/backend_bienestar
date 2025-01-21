@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import cron from 'node-cron';
 import { mainTask } from './controllers/mainTask.js';
 import empaticaRoutes from './routes/empaticaRoutes.js'
+import { getStatus } from './controllers/shelly.js';
 
 dotenv.config();
 const app = express();
@@ -27,7 +28,8 @@ app.use('/api/data', empaticaRoutes);
 //   mainTask();
 // });
 
-mainTask()
+// mainTask()
+getStatus()
 
 // Inicia el servidor
 app.listen(PORT, () => {
