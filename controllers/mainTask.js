@@ -116,7 +116,7 @@ export const mainTask = async() => {
       const destPath = path.join(userOutputPath, fileName);
       const writeStream = fs.createWriteStream(destPath);
       Body.pipe(writeStream);
-        
+      
     }else{
       // const prevData = avroFilesPerUser.get("1442-1-1-00000001");
       // avroFilesPerUser.set("1442-1-1-00000001", [...prevData, Body]);
@@ -132,107 +132,107 @@ export const mainTask = async() => {
     }
   })
 
-  // let digital_markers = []
-  // const lastEntries = await Empatica.aggregate([
-  //   {
-  //       // Agrupar por el campo participant_full_id
-  //       $group: {
-  //           _id: "$participant_full_id",
-  //           // Guardar el documento con el mayor timestamp_unix en cada grupo
-  //           latestData: { $last: "$$ROOT" },
-  //           maxTimestamp: { $max: { $toLong: "$timestamp_unix" } }
-  //       }
-  //   },
-  //   {
-  //       // Ordenar por el timestamp máximo si deseas ordenarlos
-  //       $sort: { maxTimestamp: -1 }
-  //   },
-  //   {
-  //       // Proyectar el resultado final para que solo se muestre el último documento
-  //       $replaceRoot: { newRoot: "$latestData" }
-  //   }
-  // ]);
-  // const participantes = new Map()
+  let digital_markers = []
+  const lastEntries = await Empatica.aggregate([
+    {
+        // Agrupar por el campo participant_full_id
+        $group: {
+            _id: "$participant_full_id",
+            // Guardar el documento con el mayor timestamp_unix en cada grupo
+            latestData: { $last: "$$ROOT" },
+            maxTimestamp: { $max: { $toLong: "$timestamp_unix" } }
+        }
+    },
+    {
+        // Ordenar por el timestamp máximo si deseas ordenarlos
+        $sort: { maxTimestamp: -1 }
+    },
+    {
+        // Proyectar el resultado final para que solo se muestre el último documento
+        $replaceRoot: { newRoot: "$latestData" }
+    }
+  ]);
+  const participantes = new Map()
 
 
-  // if (lastEntries.length !== 0){
-  //   lastEntries.forEach((entry)=>{
-  //     participantes.set(entry.participant_full_id, Number(entry.timestamp_unix))
-  //   })
-  // }
+  if (lastEntries.length !== 0){
+    lastEntries.forEach((entry)=>{
+      participantes.set(entry.participant_full_id, Number(entry.timestamp_unix))
+    })
+  }
 
-  // // const latestEntry = await Empatica.findOne()
-  // // .sort({ timestamp_unix: -1 })
-  // // .limit(1);
+  // const latestEntry = await Empatica.findOne()
+  // .sort({ timestamp_unix: -1 })
+  // .limit(1);
 
-  // //let currentMaxTimestamp = latestEntry ? Number(latestEntry.timestamp_unix) : 0
+  //let currentMaxTimestamp = latestEntry ? Number(latestEntry.timestamp_unix) : 0
 
-  // console.time("for")
+  console.time("for")
 
-  // for (const marker of objects) {
+  for (const marker of objects) {
 
-  //   var {Body} = await client.send(
-  //     new GetObjectCommand({
-  //       Bucket:BUCKET_NAME,
-  //       Key:marker
-  //     })
-  //   )
+    var {Body} = await client.send(
+      new GetObjectCommand({
+        Bucket:BUCKET_NAME,
+        Key:marker
+      })
+    )
 
-  //   Papa.parse(await Body.transformToString(), {
-  //     header: true, // Para incluir los nombres de las columnas como propiedades
-  //     complete: (result) => {
+    Papa.parse(await Body.transformToString(), {
+      header: true, // Para incluir los nombres de las columnas como propiedades
+      complete: (result) => {
 
-  //       const jsonData = result.data
-  //         .filter((obj) => obj.timestamp_unix !== '' && obj.missing_value_reason !== "device_not_recording" && obj.missing_value_reason !== "device_not_worn_correctly")
-  //         .map((obj) => {
-  //           if(lastEntries.length !==0){
-  //             if(Number(obj.timestamp_unix) > participantes.get(obj.participant_full_id)){
-  //               obj.timestamp_iso = unixToIso(Number(obj.timestamp_unix))
-  //               return obj
-  //             }else{
-  //               return undefined
-  //             }
-  //           }else{
-  //             obj.timestamp_iso = unixToIso(Number(obj.timestamp_unix))
-  //             return obj
-  //           }
-  //         }).filter(Boolean);
+        const jsonData = result.data
+          .filter((obj) => obj.timestamp_unix !== '' && obj.missing_value_reason !== "device_not_recording" && obj.missing_value_reason !== "device_not_worn_correctly")
+          .map((obj) => {
+            if(lastEntries.length !==0){
+              if(Number(obj.timestamp_unix) > participantes.get(obj.participant_full_id)){
+                obj.timestamp_iso = unixToIso(Number(obj.timestamp_unix))
+                return obj
+              }else{
+                return undefined
+              }
+            }else{
+              obj.timestamp_iso = unixToIso(Number(obj.timestamp_unix))
+              return obj
+            }
+          }).filter(Boolean);
     
-  //       try {
+        try {
 
-  //         digital_markers = [...digital_markers,jsonData]
+          digital_markers = [...digital_markers,jsonData]
 
-  //       } catch (error) {
-  //         console.error(error);
-  //       }
-  //     }
-  //   });
-  // };
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    });
+  };
 
-  // console.timeEnd("for")
+  console.timeEnd("for")
 
-  // let result = mergeObjects(digital_markers)
+  let result = mergeObjects(digital_markers)
 
-  // console.time("guardado")
+  console.time("guardado")
 
-  // result = result.map((obj)=> {
-  //   if(Number(obj.wearing_detection_percentage)<=75){
-  //     return undefined
-  //   }else{
-  //     return obj
-  //   }
-  // }).filter(Boolean);
+  result = result.map((obj)=> {
+    if(Number(obj.wearing_detection_percentage)<=75){
+      return undefined
+    }else{
+      return obj
+    }
+  }).filter(Boolean);
 
-  // console.log(result.length)
+  console.log(result.length)
   
 
 
-  // if (result.length) {
-  //   await insertDataInBatches(result);
-  // } else {
-  //   console.warn("No hay documentos para insertar.");
-  // }
+  if (result.length) {
+    await insertDataInBatches(result);
+  } else {
+    console.warn("No hay documentos para insertar.");
+  }
 
-  // console.timeEnd("guardado")
+  console.timeEnd("guardado")
 }
 
