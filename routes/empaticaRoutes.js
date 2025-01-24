@@ -12,6 +12,22 @@ const participantes = {
 
 const router = express.Router();
 
+
+router.get('/shelly', async (req, res) => {
+  console.log('Migrando datos de Shelly...');
+  try {
+    const result = await Shelly.updateMany(
+      { timestamp_unix: { $type: 'number' } },
+      [{ $set: { timestamp_unix: { $toString: '$timestamp_unix' } } }]
+    );
+    console.log(`Documentos actualizados: ${result.modifiedCount}`);
+    res.status(200).json({ message: 'Migración completada', modifiedCount: result.modifiedCount });
+  } catch (error) {
+    console.error('Error en la migración:', error);
+    res.status(500).json({ message: 'Error en la migración', error });
+  }
+})
+
 // Obtener todos los datos
 router.get('/', async (req, res) => {
   try {
@@ -147,15 +163,15 @@ router.get('/synchronized-data/:participantId', async (req, res) => {
   const { startDate, endDate } = req.query;
   
   try {
-    const startTimestamp = (new Date(startDate).getTime() / 1000).toString();
-    const endTimestamp = (new Date(endDate).getTime() / 1000 + 86400).toString();
+    const startTimestamp = new Date(`${startDate}T00:00:00`).getTime();
+    const endTimestamp = new Date(`${endDate}T23:59:59.999`).getTime(); 
     
     // Obtener datos de Empatica
     const empaticaData = await Empatica.find({ 
       participant_full_id: participantes[participantId], 
       timestamp_unix: { 
-        $gte: (startTimestamp * 1000), // Convertir a milisegundos para Empatica
-        $lt: (endTimestamp * 1000) 
+        $gte: startTimestamp, // Convertir a milisegundos para Empatica
+        $lt: endTimestamp 
       } 
     }).select('-_id -__v');
 
@@ -196,6 +212,7 @@ router.get('/synchronized-data/:participantId', async (req, res) => {
     const synchronizedData = empaticaData.map(empaticaEntry => {
       // Convertir timestamp de Empatica a segundos y redondear al minuto
       const empaticaMinute = Math.floor(empaticaEntry.timestamp_unix / 60000) * 60;
+      
       
       // Buscar datos de Shelly correspondientes
       const shellyEntry = shellyData.find(s => s._id.minute === empaticaMinute);
