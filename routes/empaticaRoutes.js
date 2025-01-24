@@ -151,12 +151,14 @@ router.get('/synchronized-data/:participantId', async (req, res) => {
     
     // Obtener datos de Empatica
     const empaticaData = await Empatica.find({ 
+      participant_full_id: participantes[participantId], 
       timestamp_unix: { 
         $gte: (startTimestamp * 1000), // Convertir a milisegundos para Empatica
         $lt: (endTimestamp * 1000) 
       } 
     }).select('-_id -__v');
 
+    
     // Obtener y agregar datos de Shelly por minuto
     const shellyData = await Shelly.aggregate([
       {

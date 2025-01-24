@@ -4,6 +4,10 @@ import Shelly from '../models/Shelly.js';
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 segundo
 
+const mode = process.env.SHELLY_MODE;
+
+const url = mode === 'local' ? process.env.SHELLY_URL_LOCAL : `${process.env.SHELLY_URL_CLOUD}?id=${process.env.SHELLY_ID}&auth_key=${process.env.SHELLY_AUTH_KEY}`;
+
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const getStatus = async () => {
@@ -17,24 +21,29 @@ export const getStatus = async () => {
     // Usa setInterval para ejecutar cada segundo exacto
     setInterval(async () => {
       const timestampActual = Math.floor(Date.now()); // Timestamp Unix actual en segundos
-      
       // Implementar reintentos
       let retries = 0;
       while (retries < MAX_RETRIES) {
         try {
-          const {data} = await axios.post('https://shelly-131-eu.shelly.cloud/device/status', null, {
-            params: {
-              id: '84fce63ffc80',
-              auth_key: 'Mjk1MDFmdWlkAED068288FAECC11034434A31B9D7E4FC77CE32B879D280F257A8CE2C9511CBF0C7303F6CDB93349'
-            },
+          const {data} = await axios.get(url, {
             timeout: 5000 // 5 segundos de timeout
           });
+          let shellyData;
+
+          if (mode === 'local') {
+            console.log(`${data.apower} ${timestampActual}`);
+            shellyData = new Shelly({
+              apower: data.apower,
+              timestamp_unix: timestampActual
+            });
+          } else {
+            console.log(`${data.data.device_status["switch:0"].apower} ${timestampActual}`);
+            shellyData = new Shelly({
+              apower: data.data.device_status["switch:0"].apower,
+              timestamp_unix: timestampActual
+            });
+          }
           
-          console.log(`${data.data.device_status["switch:0"].apower} ${timestampActual}`);
-          const shellyData = new Shelly({
-            apower: data.data.device_status["switch:0"].apower,
-            timestamp_unix: timestampActual
-          });
 
           await shellyData.save();
           break; // Si tiene éxito, salir del bucle de reintentos

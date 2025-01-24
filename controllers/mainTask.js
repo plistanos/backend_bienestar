@@ -16,6 +16,10 @@ let agent = new https.Agent({
 dotenv.config();
 const client = new S3Client({
   region:'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  },
   requestHandler: new NodeHttpHandler({
     requestTimeout: 3_000,
     httpsAgent: agent
@@ -86,51 +90,51 @@ export const mainTask = async() => {
     
   }
 
-  const avroFilesPerUser = new Map()
+  // const avroFilesPerUser = new Map()
 
-  avroFilesPerUser.set("1442-1-1-00000001",[])
-  avroFilesPerUser.set("1442-1-1-00000000",[])
+  // avroFilesPerUser.set("1442-1-1-00000001",[])
+  // avroFilesPerUser.set("1442-1-1-00000000",[])
 
 
-  const outputPath = './output/avro'
-  if (!fs.existsSync(outputPath)) {
-    fs.mkdirSync(outputPath, { recursive: true });
-  }
-  console.log(avroFiles.length)
-  avroFiles.forEach(async(avro) => {
-    var {Body} = await client.send(
-      new GetObjectCommand({
-        Bucket:BUCKET_NAME,
-        Key: avro
-      })
-    )
+  // const outputPath = './output/avro'
+  // if (!fs.existsSync(outputPath)) {
+  //   fs.mkdirSync(outputPath, { recursive: true });
+  // }
+  // console.log(avroFiles.length)
+  // avroFiles.forEach(async(avro) => {
+  //   var {Body} = await client.send(
+  //     new GetObjectCommand({
+  //       Bucket:BUCKET_NAME,
+  //       Key: avro
+  //     })
+  //   )
 
-    if(avro.split('/').includes("00000000-3YK661D2N8")){
-      // const prevData = avroFilesPerUser.get("1442-1-1-00000000");
-      // avroFilesPerUser.set("1442-1-1-00000000", [...prevData, Body]);
-      const userOutputPath = path.join(outputPath, "1442-1-1-00000000");
-      if (!fs.existsSync(userOutputPath)) {
-        fs.mkdirSync(userOutputPath, { recursive: true });
-      }
-      const fileName = path.basename(avro); // Obtener el nombre del archivo
-      const destPath = path.join(userOutputPath, fileName);
-      const writeStream = fs.createWriteStream(destPath);
-      Body.pipe(writeStream);
+  //   if(avro.split('/').includes("00000000-3YK661D2N8")){
+  //     // const prevData = avroFilesPerUser.get("1442-1-1-00000000");
+  //     // avroFilesPerUser.set("1442-1-1-00000000", [...prevData, Body]);
+  //     const userOutputPath = path.join(outputPath, "1442-1-1-00000000");
+  //     if (!fs.existsSync(userOutputPath)) {
+  //       fs.mkdirSync(userOutputPath, { recursive: true });
+  //     }
+  //     const fileName = path.basename(avro); // Obtener el nombre del archivo
+  //     const destPath = path.join(userOutputPath, fileName);
+  //     const writeStream = fs.createWriteStream(destPath);
+  //     Body.pipe(writeStream);
       
-    }else{
-      // const prevData = avroFilesPerUser.get("1442-1-1-00000001");
-      // avroFilesPerUser.set("1442-1-1-00000001", [...prevData, Body]);
-      const userOutputPath = path.join(outputPath, "1442-1-1-00000001");
-      if (!fs.existsSync(userOutputPath)) {
-        fs.mkdirSync(userOutputPath, { recursive: true });
-      }
-      const fileName = path.basename(avro); // Obtener el nombre del archivo
-      const destPath = path.join(userOutputPath, fileName);
-      const writeStream = fs.createWriteStream(destPath);
-      Body.pipe(writeStream);
+  //   }else{
+  //     // const prevData = avroFilesPerUser.get("1442-1-1-00000001");
+  //     // avroFilesPerUser.set("1442-1-1-00000001", [...prevData, Body]);
+  //     const userOutputPath = path.join(outputPath, "1442-1-1-00000001");
+  //     if (!fs.existsSync(userOutputPath)) {
+  //       fs.mkdirSync(userOutputPath, { recursive: true });
+  //     }
+  //     const fileName = path.basename(avro); // Obtener el nombre del archivo
+  //     const destPath = path.join(userOutputPath, fileName);
+  //     const writeStream = fs.createWriteStream(destPath);
+  //     Body.pipe(writeStream);
       
-    }
-  })
+  //   }
+  // })
 
   let digital_markers = []
   const lastEntries = await Empatica.aggregate([
@@ -159,6 +163,9 @@ export const mainTask = async() => {
     lastEntries.forEach((entry)=>{
       participantes.set(entry.participant_full_id, Number(entry.timestamp_unix))
     })
+  }else{
+    participantes.set("1442-1-1-00000000", 0)
+    participantes.set("1442-1-1-00000001", 0)
   }
 
   // const latestEntry = await Empatica.findOne()
