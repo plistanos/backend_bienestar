@@ -85,8 +85,8 @@ router.get('/empatica/:participantId', async (req, res) => {
   const { startDate, endDate } = req.query;
   
   try {
-    const startTimestamp = new Date(startDate).getTime();
-    const endTimestamp = new Date(endDate).getTime() + 86400000;
+    const startTimestamp = new Date(`${startDate}T00:00:00`).getTime();
+    const endTimestamp = new Date(`${endDate}T23:59:59.999`).getTime();
     const data = await Empatica.find({ 
       participant_full_id: participantes[participantId], 
       timestamp_unix: { $gte: startTimestamp, $lt: endTimestamp } 
@@ -113,9 +113,10 @@ router.get('/shelly/:participantId', async (req, res) => {
   const { startDate, endDate } = req.query;
   
   try {
-    const startTimestamp = (new Date(startDate).getTime() / 1000).toString(); // Convertir a segundos
-    const endTimestamp = (new Date(endDate).getTime() / 1000 + 86400).toString(); // Añadir 24 horas en segundos
-    
+    const startTimestamp = new Date(`${startDate}T00:00:00`).getTime(); 
+    const endTimestamp = new Date(`${endDate}T23:59:59.999`).getTime(); 
+    console.log(startTimestamp, endTimestamp)
+
     const data = await Shelly.find({ 
       timestamp_unix: { 
         $gte: startTimestamp, 
@@ -158,7 +159,7 @@ router.get('/synchronized-data/:participantId', async (req, res) => {
       } 
     }).select('-_id -__v');
 
-    
+
     // Obtener y agregar datos de Shelly por minuto
     const shellyData = await Shelly.aggregate([
       {
