@@ -37,15 +37,15 @@ app.use('/api/data', empaticaRoutes);
 
 
 
-cron.schedule('0 0 * * *', () => {
-  console.log('Ejecutando tarea programada:', new Date().toLocaleString());
-  mainTask();
-}, {
-  scheduled: true,
-  timezone: "America/Santiago" // Ajusta esto a tu zona horaria
-});
+// cron.schedule('0 0 * * *', () => {
+//   console.log('Ejecutando tarea programada:', new Date().toLocaleString());
+//   mainTask();
+// }, {
+//   scheduled: true,
+//   timezone: "America/Santiago" // Ajusta esto a tu zona horaria
+// });
 
-// mainTask()
+mainTask()
 getStatus()
 
 // Inicia el servidor

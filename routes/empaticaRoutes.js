@@ -158,7 +158,7 @@ router.get('/shelly/:participantId', async (req, res) => {
   }
 });
 
-router.get('/synchronized-data/:participantId', async (req, res) => {
+router.get('/todos/:participantId', async (req, res) => {
   const { participantId } = req.params;
   const { startDate, endDate } = req.query;
   
@@ -170,30 +170,28 @@ router.get('/synchronized-data/:participantId', async (req, res) => {
     const empaticaData = await Empatica.find({ 
       participant_full_id: participantes[participantId], 
       timestamp_unix: { 
-        $gte: startTimestamp, // Convertir a milisegundos para Empatica
+        $gte: startTimestamp,
         $lt: endTimestamp 
       } 
     }).select('-_id -__v');
-
 
     // Obtener y agregar datos de Shelly por minuto
     const shellyData = await Shelly.aggregate([
       {
         $match: {
           timestamp_unix: { 
-            $gte: startTimestamp, 
-            $lt: endTimestamp 
+            $gte: startTimestamp.toString(), // Convertir a string para coincidir con el tipo en BD
+            $lt: endTimestamp.toString()
           }
         }
       },
       {
         $group: {
           _id: {
-            // Redondear timestamp al minuto más cercano
             minute: {
               $subtract: [
-                { $toInt: "$timestamp_unix" },
-                { $mod: [{ $toInt: "$timestamp_unix" }, 60] }
+                { $toLong: "$timestamp_unix" }, // Convertir a número antes de la operación
+                { $mod: [{ $toLong: "$timestamp_unix" }, 60000] } // Usar 60000 para minutos en milisegundos
               ]
             }
           },
@@ -210,18 +208,15 @@ router.get('/synchronized-data/:participantId', async (req, res) => {
 
     // Combinar los datos
     const synchronizedData = empaticaData.map(empaticaEntry => {
-      // Convertir timestamp de Empatica a segundos y redondear al minuto
-      const empaticaMinute = Math.floor(empaticaEntry.timestamp_unix / 60000) * 60;
-      
-      
-      // Buscar datos de Shelly correspondientes
+      const empaticaMinute = Math.floor(empaticaEntry.timestamp_unix / 60000) * 60000;
       const shellyEntry = shellyData.find(s => s._id.minute === empaticaMinute);
       
       return {
         timestamp: empaticaEntry.timestamp_unix,
         empatica_data: empaticaEntry,
         shelly_data: shellyEntry ? {
-          average_power: shellyEntry.avg_power,
+          timestamp_unix: empaticaEntry.timestamp_unix,
+          apower: shellyEntry.avg_power,
           max_power: shellyEntry.max_power,
           min_power: shellyEntry.min_power,
           samples_in_minute: shellyEntry.samples_count
