@@ -3,6 +3,7 @@ import Empatica from '../models/Empatica.js';
 import Papa from "papaparse";
 import fs from 'fs';
 import Shelly from '../models/Shelly.js';
+import AppleW from '../models/AppleW.js';
 
 const participantes = {
   "0":"1442-1-1-00000000",
@@ -242,5 +243,56 @@ router.get('/todos/:participantId', async (req, res) => {
     res.status(500).json({ message: 'Error al obtener los datos sincronizados', error });
   }
 });
+
+router.post('/shelly/esp', async (req, res) => {
+  try {
+    const { apower, timestamp_unix } = req.body;
+    console.log(apower + ' ' + timestamp_unix*1000)
+    const shellyData = new Shelly({
+      apower,
+      timestamp_unix: timestamp_unix*1000
+    });
+    
+    await shellyData.save();
+    res.status(201).json({ message: 'Datos guardados correctamente' });
+  } catch (error) {
+    console.error('Error al guardar datos:', error);
+    res.status(500).json({ message: 'Error al guardar datos', error: error.message });
+  }
+});
+
+router.post('/apple/:participantId', async (req, res) => {
+  try {
+    const { 
+      heart_rate, 
+      oxygen_saturation, 
+      environmental_sound, 
+      timestamp_unix,
+      steps,
+      altitude,
+      longitude,
+      latitude 
+    } = req.body;
+    
+    const appleData = new AppleW({
+      heart_rate,
+      oxygen_saturation,
+      environmental_sound,
+      timestamp_unix,
+      steps,
+      altitude,
+      latitude,
+      longitude
+    });
+    
+    await appleData.save();
+    res.status(201).json({ message: 'Datos guardados correctamente' });
+  } catch (error) {
+    console.error('Error al guardar datos:', error);
+    res.status(500).json({ message: 'Error al guardar datos', error: error.message });
+  }
+});
+
+
 
 export default router;
