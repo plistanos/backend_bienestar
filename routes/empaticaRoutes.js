@@ -135,6 +135,7 @@ router.get('/shelly/:participantId', async (req, res) => {
     console.log(startTimestamp, endTimestamp)
 
     const data = await Shelly.find({ 
+      participante: participantId,
       timestamp_unix: { 
         $gte: startTimestamp, 
         $lt: endTimestamp 
@@ -244,13 +245,15 @@ router.get('/todos/:participantId', async (req, res) => {
   }
 });
 
-router.post('/shelly/esp', async (req, res) => {
+router.post('/shelly/esp/:participante', async (req, res) => {
+  const { participantId } = req.params;
   try {
     const { apower, timestamp_unix } = req.body;
     console.log(apower + ' ' + timestamp_unix*1000)
     const shellyData = new Shelly({
       apower,
-      timestamp_unix: timestamp_unix*1000
+      timestamp_unix: timestamp_unix*1000,
+      participante: participantId
     });
     
     await shellyData.save();
