@@ -140,15 +140,15 @@ router.get('/empatica/:participantId', async (req, res) => {
     }).select('-_id -__v');
 
     
-    const csvData = Papa.unparse(JSON.stringify(data));
-    const filePath = `./output/data-${participantId}-${startDate}-${endDate}.csv`;
-    await fs.writeFile(filePath, csvData, (err) => {
-      if (err) {
-        console.error('Error al guardar el archivo CSV:', err);
-      } else {
-        console.log('Archivo CSV guardado exitosamente en:', filePath);
-      }
-    });
+    // const csvData = Papa.unparse(JSON.stringify(data));
+    // const filePath = `./output/data-${participantId}-${startDate}-${endDate}.csv`;
+    // await fs.writeFile(filePath, csvData, (err) => {
+    //   if (err) {
+    //     console.error('Error al guardar el archivo CSV:', err);
+    //   } else {
+    //     console.log('Archivo CSV guardado exitosamente en:', filePath);
+    //   }
+    // });
     res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener los datos del participante', error });
@@ -172,16 +172,16 @@ router.get('/shelly/:participantId', async (req, res) => {
       } 
     }).select('-_id -__v');
 
-    const csvData = Papa.unparse(JSON.stringify(data));
-    const filePath = `./output/shelly-data-${participantId}-${startDate}-${endDate}.csv`;
+    // const csvData = Papa.unparse(JSON.stringify(data));
+    // const filePath = `./output/shelly-data-${participantId}-${startDate}-${endDate}.csv`;
     
-    await fs.writeFile(filePath, csvData, (err) => {
-      if (err) {
-        console.error('Error al guardar el archivo CSV:', err);
-      } else {
-        console.log('Archivo CSV guardado exitosamente en:', filePath);
-      }
-    });
+    // await fs.writeFile(filePath, csvData, (err) => {
+    //   if (err) {
+    //     console.error('Error al guardar el archivo CSV:', err);
+    //   } else {
+    //     console.log('Archivo CSV guardado exitosamente en:', filePath);
+    //   }
+    // });
     
     res.status(200).json(data);
   } catch (error) {
@@ -256,17 +256,17 @@ router.get('/todos/:participantId', async (req, res) => {
       };
     });
 
-    // Generar CSV
-    const csvData = Papa.unparse(JSON.stringify(synchronizedData));
-    const filePath = `./output/synchronized-data-${startDate}-${endDate}.csv`;
+    // // Generar CSV
+    // const csvData = Papa.unparse(JSON.stringify(synchronizedData));
+    // const filePath = `./output/synchronized-data-${startDate}-${endDate}.csv`;
     
-    await fs.writeFile(filePath, csvData, (err) => {
-      if (err) {
-        console.error('Error al guardar el archivo CSV:', err);
-      } else {
-        console.log('Archivo CSV guardado exitosamente en:', filePath);
-      }
-    });
+    // await fs.writeFile(filePath, csvData, (err) => {
+    //   if (err) {
+    //     console.error('Error al guardar el archivo CSV:', err);
+    //   } else {
+    //     console.log('Archivo CSV guardado exitosamente en:', filePath);
+    //   }
+    // });
     
     res.status(200).json(synchronizedData);
   } catch (error) {

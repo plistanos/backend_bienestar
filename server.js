@@ -24,6 +24,8 @@ const corsOptions = {
 // Aplicar CORS antes de otras middlewares
 app.use(cors());
 
+
+
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log("Conectado a MongoDB"))
