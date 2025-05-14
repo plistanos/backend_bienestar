@@ -7,6 +7,12 @@ import cron from 'node-cron';
 import { mainTask } from './controllers/mainTask.js';
 import empaticaRoutes from './routes/empaticaRoutes.js'
 import { getStatus } from './controllers/shelly.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Obtener el nombre de archivo y el directorio actual
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 const app = express();
@@ -24,7 +30,12 @@ const corsOptions = {
 // Aplicar CORS antes de otras middlewares
 app.use(cors());
 
+// Servir archivos estáticos desde la carpeta 'public'
+app.use(express.static(path.join(__dirname, 'public')));
 
+app.use( '*', (req, res) => {
+  res.sendFile( path.join(__dirname, 'public/index.html'));
+});
 
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
