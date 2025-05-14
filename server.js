@@ -33,10 +33,6 @@ app.use(cors());
 // Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use( '*', (req, res) => {
-  res.sendFile( path.join(__dirname, 'public/index.html'));
-});
-
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log("Conectado a MongoDB"))
