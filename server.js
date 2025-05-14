@@ -34,7 +34,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Conectar a MongoDB
-mongoose.connect(process.env.MONGODB_URI+"/plataforma-bienestar?authSource=admin")
+mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log("Conectado a MongoDB"))
 .catch(err => console.error("Error de conexión a MongoDB:", err));
 
