@@ -8,7 +8,8 @@ const appleWSchema = new mongoose.Schema({
     steps: String,
     altitude: String,
     latitude: String,
-    longitude: String
+    longitude: String,
+    participant_full_id: String,
 });
 
 export default mongoose.model('AppleW', appleWSchema);

@@ -97,6 +97,36 @@ router.get('/last', async (req,res) => {
   }
 })
 
+router.get('/applewatch/:participantId', async (req, res) => {
+  const { participantId } = req.params;
+  const { startDate, endDate } = req.query;
+  
+  try {
+    const startTimestamp = new Date(`${startDate}T00:00:00`).getTime();
+    const endTimestamp = new Date(`${endDate}T23:59:59.999`).getTime();
+    const data = await AppleW.find({ 
+      participant_full_id: participantes[participantId], 
+      timestamp_unix: { $gte: startTimestamp, $lt: endTimestamp } 
+    }).select('-_id -__v');
+
+    console.log(data)
+
+    
+    // const csvData = Papa.unparse(JSON.stringify(data));
+    // const filePath = `./output/data-${participantId}-${startDate}-${endDate}.csv`;
+    // await fs.writeFile(filePath, csvData, (err) => {
+    //   if (err) {
+    //     console.error('Error al guardar el archivo CSV:', err);
+    //   } else {
+    //     console.log('Archivo CSV guardado exitosamente en:', filePath);
+    //   }
+    // });
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener los datos del participante', error });
+  }
+});
+
 router.get('/empatica/:participantId', async (req, res) => {
   const { participantId } = req.params;
   const { startDate, endDate } = req.query;
@@ -264,24 +294,62 @@ router.post('/shelly/esp/:participante', async (req, res) => {
   }
 });
 
+// router.post('/apple/convert-to-milliseconds', async (req, res) => {
+//   try {
+//     const result = await AppleW.updateMany(
+//       {}, // Filtro vacío para aplicar a todos los documentos
+//       [
+//         {
+//           $set: {
+//             timestamp_unix: {
+//               $toString: { // Convertir el resultado final a string si es necesario
+//                 $multiply: [
+//                   { $toLong: "$timestamp_unix" }, // Convertir string a número
+//                   1000
+//                 ]
+//               }
+//             }
+//           }
+//         }
+//       ]
+//     );
+    
+//     res.status(200).json({
+//       message: 'Timestamps convertidos a milisegundos correctamente',
+//       modifiedCount: result.modifiedCount
+//     });
+//   } catch (error) {
+//     console.error('Error al convertir timestamps:', error);
+//     res.status(500).json({ 
+//       message: 'Error al convertir timestamps', 
+//       error: error.message 
+//     });
+//   }
+// });
+
 router.post('/apple/:participantId', async (req, res) => {
+  const { 
+    heart_rate, 
+    oxygen_saturation, 
+    environmental_sound,
+    timestamp_unix,
+    steps,
+    altitude,
+    longitude,
+    latitude 
+  } = req.body;
+
+  const {participantId} = req.params
+
   try {
-    const { 
-      heart_rate, 
-      oxygen_saturation, 
-      environmental_sound, 
-      timestamp_unix,
-      steps,
-      altitude,
-      longitude,
-      latitude 
-    } = req.body;
+    const roundedTimestamp = timestamp_unix - (timestamp_unix % 10);
     
     const appleData = new AppleW({
+      participant_full_id: participantes[participantId],
       heart_rate,
       oxygen_saturation,
       environmental_sound,
-      timestamp_unix,
+      timestamp_unix: roundedTimestamp*1000,
       steps,
       altitude,
       latitude,
@@ -295,6 +363,8 @@ router.post('/apple/:participantId', async (req, res) => {
     res.status(500).json({ message: 'Error al guardar datos', error: error.message });
   }
 });
+
+
 
 
 
